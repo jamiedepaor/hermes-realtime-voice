@@ -704,6 +704,35 @@ class TestVoiceChannelCommands:
         assert event.metadata["realtime_voice_proxy"] is True
         assert event.allow_gateway_control is True
 
+    @pytest.mark.asyncio
+    async def test_realtime_input_can_forward_to_existing_hermes_cloud(
+        self, runner, monkeypatch
+    ):
+        monkeypatch.setenv(
+            "HERMES_CLOUD_GATEWAY_URL",
+            "https://example.agents.nousresearch.com",
+        )
+        cloud_client = MagicMock()
+        cloud_client.ask = AsyncMock(return_value="Hosted Hermes reply")
+
+        with patch(
+            "plugins.platforms.discord.hermes_cloud_client.HermesCloudClient",
+            return_value=cloud_client,
+        ) as client_class:
+            result = await runner._handle_realtime_voice_consult(
+                111, 42, "Check my calendar"
+            )
+
+        assert result == "Hosted Hermes reply"
+        client_class.assert_called_once_with(
+            "https://example.agents.nousresearch.com",
+            token_file=None,
+        )
+        cloud_client.ask.assert_awaited_once_with(
+            "Check my calendar",
+            conversation="guild-111-user-42",
+        )
+
 
     # -- _get_guild_id --
 

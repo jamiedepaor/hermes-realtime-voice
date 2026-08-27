@@ -22550,7 +22550,28 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
     async def _handle_realtime_voice_consult(
         self, guild_id: int, user_id: int, transcript: str
     ) -> str:
-        """Run a Realtime function call through the normal Hermes pipeline."""
+        """Run a Realtime function call through local or hosted Hermes.
+
+        ``HERMES_CLOUD_GATEWAY_URL`` activates sidecar mode: Discord voice and
+        OpenAI Realtime run in this process while the actual request is sent to
+        the user's existing Nous-hosted Hermes instance.  With no URL set the
+        original in-process session path remains unchanged.
+        """
+        cloud_gateway = os.getenv("HERMES_CLOUD_GATEWAY_URL", "").strip()
+        if cloud_gateway:
+            client = self.__dict__.get("_hermes_cloud_voice_client")
+            if client is None:
+                from plugins.platforms.discord.hermes_cloud_client import HermesCloudClient
+
+                client = HermesCloudClient(
+                    cloud_gateway,
+                    token_file=os.getenv("HERMES_CLOUD_TOKEN_FILE", "") or None,
+                )
+                self.__dict__["_hermes_cloud_voice_client"] = client
+            return await client.ask(
+                transcript,
+                conversation=f"guild-{guild_id}-user-{user_id}",
+            )
         return await self._dispatch_voice_channel_transcript(
             guild_id=guild_id,
             user_id=user_id,

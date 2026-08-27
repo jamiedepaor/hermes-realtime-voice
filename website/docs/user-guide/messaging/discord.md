@@ -302,6 +302,9 @@ Discord behavior is controlled through two files: **`~/.hermes/.env`** for crede
 | `DISCORD_HOME_CHANNEL` | No | — | Channel ID where the bot sends proactive messages (cron output, reminders, notifications). |
 | `DISCORD_HOME_CHANNEL_NAME` | No | `"Home"` | Display name for the home channel in logs and status output. |
 | `DISCORD_COMMAND_SYNC_POLICY` | No | `"safe"` | Controls native slash-command startup sync. `"safe"` diffs existing global commands and only updates what changed, recreating commands when Discord metadata changes cannot be applied via patch. `"bulk"` preserves the old `tree.sync()` behavior. `"off"` skips startup sync entirely. |
+| `OPENAI_API_KEY` | Realtime voice only | — | OpenAI API project key used for the Realtime speech connection. `VOICE_TOOLS_OPENAI_KEY` is accepted as a compatibility alias. |
+| `HERMES_CLOUD_GATEWAY_URL` | Hosted sidecar only | — | HTTPS URL of the existing Nous-hosted Hermes gateway. Enables sidecar forwarding instead of running the prompt locally. |
+| `HERMES_CLOUD_TOKEN_FILE` | Hosted sidecar only | `~/.config/hermes-cloud-bridge/tokens.json` | Persistent owner-only native OAuth token file for the hosted Hermes gateway. |
 | `DISCORD_REQUIRE_MENTION` | No | `true` | When `true`, the bot only responds in server channels when `@mentioned`. Set to `false` to respond to all messages in every channel. |
 | `DISCORD_THREAD_REQUIRE_MENTION` | No | `false` | When `true`, the in-thread mention shortcut is disabled — threads are gated the same as channels, requiring `@mention` even after the bot has already participated. Use this when multiple bots share a thread and you want each to fire only on explicit `@mention`. |
 | `DISCORD_FREE_RESPONSE_CHANNELS` | No | — | Comma-separated channel IDs where the bot responds without requiring an `@mention`, even when `DISCORD_REQUIRE_MENTION` is `true`. |
@@ -358,7 +361,7 @@ discord:
   voice_playback_timeout_seconds: 120             # Minimum playback watchdog; long clips get duration+padding
   realtime_voice:                                 # Optional low-latency Discord VC mode
     enabled: false
-    model: gpt-realtime-2.1-mini
+    model: gpt-realtime-mini
     voice: marin
     vad: semantic_vad
   allow_mentions:                 # What the bot is allowed to ping (safe defaults)
@@ -397,7 +400,7 @@ Enable the behavior in `~/.hermes/config.yaml`:
 discord:
   realtime_voice:
     enabled: true
-    model: gpt-realtime-2.1-mini
+    model: gpt-realtime-mini
     voice: marin
     vad: semantic_vad
 ```
@@ -406,6 +409,28 @@ Restart the gateway, join a Discord voice channel, then run `/voice join`.
 The confirmation explicitly says whether **Realtime voice** or the standard
 fallback is active. Usage is billed directly to the OpenAI API project behind
 `OPENAI_API_KEY`.
+
+##### Using Realtime voice with a Nous-hosted Hermes Cloud agent
+
+Nous Cloud does not accept a custom container image. Run this Discord gateway
+as a small external sidecar and forward each recognized turn to the existing
+hosted agent instead:
+
+```bash
+HERMES_CLOUD_GATEWAY_URL=https://your-agent.agents.nousresearch.com
+HERMES_CLOUD_TOKEN_FILE=/run/secrets/hermes-cloud-tokens.json
+```
+
+The token file is produced by the Hermes native OAuth/PKCE login and must be
+mounted read-write on persistent storage with owner-only permissions. The
+sidecar uses it only to mint short-lived WebSocket tickets and automatically
+persists refresh-token rotation. `DISCORD_BOT_TOKEN`, `DISCORD_ALLOWED_USERS`,
+and `OPENAI_API_KEY` remain sidecar secrets. No model key for the hosted Hermes
+agent is required.
+
+In this mode, Discord and OpenAI handle live audio while `prompt.submit` runs
+inside the original Nous-hosted Hermes instance. Its tools, memory, personality,
+and existing cloud configuration remain authoritative.
 
 #### `discord.require_mention`
 
