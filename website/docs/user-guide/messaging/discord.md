@@ -361,7 +361,7 @@ discord:
   voice_playback_timeout_seconds: 120             # Minimum playback watchdog; long clips get duration+padding
   realtime_voice:                                 # Optional low-latency Discord VC mode
     enabled: false
-    model: gpt-realtime-mini
+    model: gpt-realtime-2.1-mini
     voice: marin
     vad: semantic_vad
   allow_mentions:                 # What the bot is allowed to ping (safe defaults)
@@ -400,7 +400,7 @@ Enable the behavior in `~/.hermes/config.yaml`:
 discord:
   realtime_voice:
     enabled: true
-    model: gpt-realtime-mini
+    model: gpt-realtime-2.1-mini
     voice: marin
     vad: semantic_vad
 ```

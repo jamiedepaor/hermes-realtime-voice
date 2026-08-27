@@ -2389,7 +2389,7 @@ DEFAULT_CONFIG = {
         # stay in .env (OPENAI_API_KEY), never config.yaml.
         "realtime_voice": {
             "enabled": False,
-            "model": "gpt-realtime-mini",
+            "model": "gpt-realtime-2.1-mini",
             "voice": "marin",
             "vad": "semantic_vad",
             "instructions": "",

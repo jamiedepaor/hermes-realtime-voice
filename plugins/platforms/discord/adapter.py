@@ -4369,7 +4369,7 @@ class DiscordAdapter(BasePlatformAdapter):
         """
         defaults: Dict[str, Any] = {
             "enabled": False,
-            "model": "gpt-realtime-mini",
+            "model": "gpt-realtime-2.1-mini",
             "voice": "marin",
             "vad": "semantic_vad",
             "instructions": "",
@@ -4655,7 +4655,7 @@ class DiscordAdapter(BasePlatformAdapter):
                 api_key=api_key,
                 mixer=mixer,
                 consult_hermes=_consult,
-                model=str(cfg.get("model") or "gpt-realtime-mini"),
+                model=str(cfg.get("model") or "gpt-realtime-2.1-mini"),
                 voice=str(cfg.get("voice") or "marin"),
                 vad=str(cfg.get("vad") or "semantic_vad"),
                 instructions=str(cfg.get("instructions") or ""),

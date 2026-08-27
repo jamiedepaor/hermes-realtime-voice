@@ -73,7 +73,7 @@ class RealtimeVoiceSession:
         api_key: str,
         mixer: Any,
         consult_hermes: Callable[[int, int, str], Awaitable[str]],
-        model: str = "gpt-realtime-mini",
+        model: str = "gpt-realtime-2.1-mini",
         voice: str = "marin",
         vad: str = "semantic_vad",
         instructions: str = "",
